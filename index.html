@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Salish Sea Flow Explorer</title>
+  <meta name="description" content="Tides and currents of the Salish Sea from NOAA's SSCOFS model: why high water and slack water don't line up.">
+  <script>
+    // Panel theme before first paint (prefs.theme, shared convention across the fp-sea sites).
+    try { const t = localStorage.getItem("prefs.theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch {}
+  </script>
+  <link rel="stylesheet" href="style.css?v=20261005223557">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="scene"></div>
+
+  <header id="topbar">
+    <span class="title">Salish Sea Flow Explorer</span>
+    <span class="where" id="where"></span>
+    <span id="status">loading…</span>
+    <button class="btn mini newer" id="newer" hidden></button>
+    <button class="btn mini warn" id="data-warn" hidden></button>
+    <span class="spacer"></span>
+    <button class="btn mini lesson-btn" id="lesson-btn" hidden title="A five-minute guided lesson: why high water and slack water don't line up">🎓 Lesson</button>
+    <button class="btn mini" id="link-btn" title="Copy a link to exactly this: view, time, colour, depth, and any open card or lesson step">🔗 Link</button>
+    <a class="btn mini" id="guide-btn" href="guide.html" target="_blank" rel="noopener" title="How it works: data, methods, how to read each map, limits">Guide ↗</a>
+    <button class="btn mini" id="view2d" title="Switch between the 3D view and a north-up 2D map (key: 2)">2D</button>
+  </header>
+
+  <aside id="panel">
+    <div id="timebar" hidden>
+      <div class="tlbl"><b id="t-local"></b><span id="t-utc"></span></div>
+      <div class="inline tctl">
+        <button class="btn mini" id="play" title="Play: the model hours, blended smoothly (space)">▶</button>
+        <button class="btn mini" id="now-btn" title="Jump to now">Now</button>
+        <input id="t-slider" type="range" min="0" max="72" step="0.05" value="0" title="Time in the model run (hours from its start)">
+        <select id="play-rate" class="mini" title="Playback speed: model hours per second"><option value="0.5">½ h/s</option><option value="1" selected>1 h/s</option><option value="2">2 h/s</option><option value="4">4 h/s</option></select>
+      </div>
+      <div class="note tnote" id="t-note"></div>
+    </div>
+
+    <h1>Salish Sea Flow Explorer <span class="h1r"><button class="btn mini" id="theme-btn" title="Panel colours: Auto (follows your device), Light or Dark">Auto</button></span></h1>
+    <p class="sub">Tides and currents from NOAA's SSCOFS model. Learning tool, not for navigation.</p>
+    <div class="inline src-row" id="src-row" hidden><label for="src-select"><b>Data</b></label>
+      <select id="src-select" title="Live: today's forecast, surface current and tide (updated each morning). Lab: a whole model run kept for exploring — every depth, the depth-averaged current, the basin and pass charts, and the lesson."></select></div>
+    <div class="note" id="src-note" hidden></div>
+
+    <details class="grp" id="view-grp" open>
+      <summary>View</summary>
+      <select id="view-select" title="The whole basin and each area, from above or in 3D. Keys 1, 3–9 jump to the first views."></select>
+      <div class="btnrow">
+        <button class="btn" id="view-home" title="The opening view">Home</button>
+        <button class="btn" id="view-top" title="This area from above">Above</button>
+        <button class="btn" id="view-3d" title="This area in 3D">3D</button>
+      </div>
+      <button class="btn wide" id="report-btn" hidden title="What the tide and currents do in this area, in words, from this run">📋 What happens here?</button>
+    </details>
+
+    <details class="grp" id="flow-grp" open hidden>
+      <summary>Tide &amp; current</summary>
+      <div class="inline"><span class="lab">Colour</span>
+        <select id="fill-mode" title="What the colour on the water shows: the flow right now, or a pattern over the whole run"></select></div>
+      <div id="fill-key" class="key"></div>
+      <div class="note read" id="fill-read"></div>
+      <div class="inline"><span class="lab">Current at</span>
+        <select id="flow-layer" title="Surface: the top layer of the model (what a boat feels; includes wind and river effects). Depth-averaged: the whole water column (the tide's own flow). Net drift: what's left after the tides average out. At depth: needs the full 3D volume."><option value="surf">Surface</option><option value="davg">Depth-averaged</option>
+          <optgroup label="Over the run"><option value="res_s">Net drift · surface</option><option value="res_d">Net drift · depth-averaged</option></optgroup>
+          <optgroup label="At depth (full 3D volume)"><option value="d:10">10 m down</option><option value="d:30">30 m down</option><option value="d:100">100 m down</option><option value="d:bottom">Near the seabed</option><option value="d:50" id="opt-dcustom">Any depth (slider)…</option></optgroup></select></div>
+      <div class="slider" id="depth-row" hidden><div class="lbl"><span>Depth</span><b id="depth-val"></b></div>
+        <input id="depth-m" type="range" min="2" max="300" step="1" value="30" title="Any depth below the surface (the slice is blank where the water is shallower)"></div>
+      <div class="inline vol3d" id="vol3d-row" hidden>
+        <label class="row" title="Slices at 20, 60 and 120 m down, all at once, under the surface — coloured like the water (speed or flood/ebb). Each shows only where the water is that deep."><input id="show-stack" type="checkbox"> Stacked slices</label>
+        <label class="row" title="Vertical sections from the surface to the seabed at the passes, coloured flood (blue) / ebb (orange). Click one for its current at every depth over the run."><input id="show-curtains" type="checkbox"> Curtains at the passes</label>
+        <label class="row" title="The net (tidally averaged) transport through each section, as in the Salish Sea Model's circulation maps: the upper layers flowing out and the lower flowing in, thousand m³/s. Needs the curtains."><input id="show-exchange" type="checkbox"> Net exchange</label>
+        <label class="row" title="Particles through the whole water column, drifting with the model's 3D current (including up and down), blended smoothly between layers and hours. Zoom in to an area first."><input id="show-p3d" type="checkbox"> 3D particles (all depths)</label></div>
+      <div id="p3d-box" class="volbox" hidden>
+        <div class="inline"><span class="lab">Colour by</span><select id="p3d-colour" class="mini" title="Speed: the horizontal current. Depth: shallow pale → deep violet. Up/down: rising red, sinking blue (±1 cm/s full colour)."><option value="speed">Speed</option><option value="depth">Depth</option><option value="vertical">Up / down</option></select></div>
+        <div class="slider"><div class="lbl"><span>From depth</span><b id="p3d-top-val"></b></div><input id="p3d-top" type="range" min="0" max="250" step="5" value="0" title="Only particles below this depth"></div>
+        <div class="slider"><div class="lbl"><span>To depth</span><b id="p3d-bot-val"></b></div><input id="p3d-bot" type="range" min="5" max="400" step="5" value="400" title="Only particles above this depth (400 = to the seabed)"></div>
+        <div class="note">Particle count, size, trail, speed and opacity: the sliders below.</div></div>
+      <div class="btnrow cur-list" id="cur-list" hidden title="Jump to a curtain"></div>
+      <div class="note" id="vol3d-note" hidden></div>
+      <div id="vol-box" class="volbox" hidden>
+        <div class="note" id="vol-msg"></div>
+        <div class="inline"><button class="btn mini" id="vol-go">Download</button><button class="btn mini" id="vol-no">Not now</button>
+          <select id="vol-pref" class="mini" title="At start-up: ask, always download, or never"><option value="ask">Ask each time</option><option value="always">Always download</option><option value="never">Never ask</option></select></div>
+      </div>
+      <div class="inline"><label class="row"><input id="show-parts" type="checkbox" checked> Particles</label><label class="row"><input id="show-lines" type="checkbox"> Streamlines</label></div>
+      <label class="row" title="NOAA's current-prediction stations. Orange: this run's model is much weaker than NOAA's prediction there (narrow passes its mesh can't resolve); violet: much stronger. Click one for NOAA's curve beside the model's."><input id="show-stations" type="checkbox" checked> NOAA stations <span class="note" id="stations-note"></span></label>
+      <div class="two-sliders">
+        <div class="slider"><div class="lbl"><span>Density</span><b id="density-val"></b></div><input id="density" type="range" min="0.25" max="3" step="0.25" value="1"></div>
+        <div class="slider"><div class="lbl"><span>Speed</span><b id="pspeed-val"></b></div><input id="pspeed" type="range" min="0.25" max="4" step="0.25" value="1"></div>
+        <div class="slider"><div class="lbl"><span>Size</span><b id="psize-val"></b></div><input id="psize" type="range" min="0.4" max="3" step="0.1" value="1" title="Particle thickness"></div>
+        <div class="slider"><div class="lbl"><span>Trail</span><b id="ptrail-val"></b></div><input id="ptrail" type="range" min="0.3" max="4" step="0.1" value="1" title="How long a trail each particle leaves"></div>
+        <div class="slider"><div class="lbl"><span>Line width</span><b id="lwidth-val"></b></div><input id="lwidth" type="range" min="0.4" max="3" step="0.1" value="1" title="Streamline thickness"></div>
+        <div class="slider"><div class="lbl"><span>Opacity</span><b id="popac-val"></b></div><input id="popac" type="range" min="0.1" max="1" step="0.05" value="0.9" title="Particles and streamlines"></div>
+      </div>
+      <div class="slider"><div class="lbl"><span>Colour opacity</span><b id="fill-op-val"></b></div><input id="fill-op" type="range" min="0.1" max="1" step="0.05" value="0.8"></div>
+      <div class="note" id="run-note"></div>
+    </details>
+
+    <details class="grp" id="ps-grp" open hidden>
+      <summary>Basins &amp; passes</summary>
+      <div class="note">How the water gets in and out: the flow through each pass against how fast the basin behind it fills.</div>
+      <div class="btnrow ps-list" id="ps-list"></div>
+    </details>
+
+    <details class="grp" id="ground-grp">
+      <summary>Land, seabed &amp; water</summary>
+      <div class="inline"><label class="row"><input id="show-land" type="checkbox" checked> Land</label>
+        <select id="land-style" class="mini" title="What the land looks like"><option value="relief">Shaded relief</option><option value="photo">Satellite photo</option><option value="dark">Plain dark</option></select></div>
+      <div class="slider"><div class="lbl"><span>Land height ×</span><b id="land-ex-val"></b></div>
+        <input id="land-ex" type="range" min="0" max="5" step="0.25" value="1.5" title="Vertical exaggeration of the land. 0 = flat."></div>
+      <div class="inline"><label class="row"><input id="show-seabed" type="checkbox" checked> Seabed</label>
+        <select id="seabed-src" class="mini" title="Best: survey depths — NOAA's CUDEM in US waters, CHS NONNA in Canadian waters — and the model's depth on the open coast. Model: the seabed the SSCOFS model itself flows over (smoother over sills and channels)."><option value="best">Best available</option><option value="model">Model's own</option></select></div>
+      <div class="slider"><div class="lbl"><span>Seabed depth ×</span><b id="seabed-ex-val"></b></div>
+        <input id="seabed-ex" type="range" min="1" max="40" step="1" value="8" title="Vertical exaggeration of the seabed. The basin is ~300 km across and mostly under 300 m deep, so true scale looks flat."></div>
+      <div class="inline"><label class="row"><input id="show-water" type="checkbox" checked> Water surface</label>
+        <select id="water-style" class="mini" title="The sea surface's colour"><option value="sea">Sea</option><option value="clear">Clear</option><option value="dark">Dark</option><option value="photo">Satellite photo</option></select></div>
+      <div class="slider"><div class="lbl"><span>Water opacity</span><b id="water-op-val"></b></div>
+        <input id="water-op" type="range" min="0" max="1" step="0.05" value="0.45" title="How much of the seabed shows through the water"></div>
+      <div id="depth-key" class="key"></div>
+      <div class="note" id="ground-note"></div>
+    </details>
+
+    <details class="grp credits" id="about-grp">
+      <summary>About the data</summary>
+      <div class="note" id="data-status"></div>
+      <div class="note" id="credits"></div>
+      <div class="note"><details class="chs-notice"><summary>Canadian seabed: CHS NONNA · not for navigation · licence notice</summary><p>This product was made by fp-sea and contains intellectual property of the Canadian Hydrographic Service (CHS) of the Department of Fisheries and Oceans. This product does not meet the requirements of the Navigation Safety Regulations, 2020 under the Canada Shipping Act, 2001. Charts and publications issued by or on the authority of CHS must be used to meet the requirements of those regulations. The copyright in the data are and remain the property of His Majesty the King in Right of Canada and shall not be sold, licensed, leased, assigned or given to a third party. The incorporation of CHS data in this product does not constitute an endorsement or an approval of this product by the Canadian Hydrographic Service, the Department of Fisheries and Oceans or His Majesty the King in Right of Canada.</p></details></div>
+      <div class="note" id="store-note"></div>
+      <button class="btn mini" id="store-clear" title="Forget the model runs kept on this device (they'll download again next time)">Clear kept data</button>
+    </details>
+  </aside>
+
+  <section id="point" class="card" hidden>
+    <div class="pt-head"><div><b id="pt-title"></b><div class="note" id="pt-sub"></div></div>
+      <div class="pt-tools"><select id="pt-units" class="mini" title="Tide heights in feet or metres"><option value="ft">ft</option><option value="m">m</option></select>
+      <button class="btn mini" id="pt-close" title="Close (Esc)">✕</button></div></div>
+    <canvas id="pt-chart" title="Click to move the time there"></canvas>
+    <div class="pt-legend"><span class="sw hw"></span>water level · HW/LW <span class="sw fl"></span>flood <span class="sw eb"></span>ebb <span class="sw sl"></span>slack, ± h:mm from the HW/LW it pairs with <span id="pt-legend-noaa"></span></div>
+    <div class="note" id="pt-sum"></div>
+    <div class="pt-trace" id="pt-trace" hidden><b>Follow the water from here</b> (Lab, the model's 3D current in real time):
+      <div class="btnrow"><button class="btn mini" data-depth="surface">Surface</button><button class="btn mini" data-depth="mid">Mid-depth</button><button class="btn mini" data-depth="bottom">Near the seabed</button>
+        <select id="pt-trace-h" class="mini" title="How long to follow it, from the time on screen"><option value="12">12 h</option><option value="24" selected>24 h</option><option value="72">to the end</option></select>
+        <button class="btn mini" id="pt-trace-clear" title="Remove all paths">Clear paths</button></div>
+      <div class="note" id="pt-trace-note"></div></div>
+  </section>
+
+  <div id="welcome" hidden><b>New here?</b> The 5-minute lesson shows why high water and slack water don't line up. <button class="btn mini on" id="wl-go">🎓 Start the lesson</button> <button class="btn mini" id="wl-no">Explore</button></div>
+
+  <section id="lesson" hidden>
+    <div class="ls-head"><b id="ls-title"></b><button class="btn mini" id="ls-close" title="Leave the lesson (the map stays as it is)">✕</button></div>
+    <div id="ls-body" class="ls-body"></div>
+    <div class="ls-nav"><button class="btn" id="ls-back">‹ Back</button><div id="ls-dots" class="ls-dots"></div><button class="btn on" id="ls-next">Next ›</button></div>
+  </section>
+
+  <section id="report" class="card" hidden>
+    <div class="pt-head"><div><b id="rp-title"></b><div class="note">From this model run · each “map ›” shows it in colour</div></div>
+      <div class="pt-tools"><button class="btn mini" id="rp-close" title="Close (Esc)">✕</button></div></div>
+    <div id="rp-body"></div>
+  </section>
+
+  <section id="passes" class="card" hidden>
+    <div class="pt-head"><div><b id="ps-title"></b><div class="note" id="ps-sub"></div></div>
+      <div class="pt-tools"><select id="ps-units" class="mini" title="Heights in feet or metres"><option value="ft">ft</option><option value="m">m</option></select>
+      <button class="btn mini" id="ps-close" title="Close (Esc)">✕</button></div></div>
+    <canvas id="ps-chart" title="Click to move the time there"></canvas>
+    <div class="pt-legend" id="ps-legend"></div>
+    <div class="note ps-sum" id="ps-sum"></div>
+  </section>
+
+  <section id="section" class="card" hidden>
+    <div class="pt-head"><div><b id="sc-title"></b><div class="note" id="sc-sub"></div></div>
+      <div class="pt-tools"><button class="btn mini" id="sc-close" title="Close (Esc)">✕</button></div></div>
+    <canvas id="sc-chart" title="Click to move the time there"></canvas>
+    <div class="note" id="sc-sum"></div>
+    <div class="btnrow"><button class="btn mini" id="sc-release" title="Parcels across the line at the surface, mid-depth and near the seabed, followed for 24 h from the time on screen">Release water across this line (24 h)</button>
+      <button class="btn mini" id="sc-clear">Clear paths</button></div>
+    <div class="note" id="sc-release-note"></div>
+  </section>
+
+  <div id="hint">drag to rotate · right-drag to pan · wheel to zoom</div>
+  <script type="module" src="app.js?v=20261005223557"></script>
+</body>
+</html>

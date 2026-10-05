@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flow Explorer Guide</title>
+<meta name="description" content="How the Salish Sea Flow Explorer works: the question it answers, every control, the data, the methods and the limits.">
+<script>try { const t = localStorage.getItem("prefs.theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch {}</script>
+<style>
+  :root { --paper:#EFF2F2; --panel:#FBFCFC; --ink:#132A32; --ink-soft:#4C626B; --sea:#0E7C8B; --deep:#0B3F4A; --caution:#C15A2B; --grid:#D3DBDE; --strong:#0B3F4A; color-scheme: light; }
+  :root[data-theme="dark"] { --paper:#172a31; --panel:#0f1e24; --ink:#d6e4e7; --ink-soft:#92abb2; --grid:#2b424a; --sea:#3db2c1; --caution:#ec8a55; --strong:#bde6ec; color-scheme: dark; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper:#172a31; --panel:#0f1e24; --ink:#d6e4e7; --ink-soft:#92abb2; --grid:#2b424a; --sea:#3db2c1; --caution:#ec8a55; --strong:#bde6ec; color-scheme: dark; } }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 15.5px/1.6 "Noto Sans", system-ui, -apple-system, sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 16px 60px; }
+  header { border-bottom: 1px solid var(--grid); margin-bottom: 16px; }
+  h1 { color: var(--strong); margin: 0 0 4px; font-size: 28px; }
+  h2 { color: var(--sea); margin: 34px 0 8px; font-size: 21px; border-top: 1px solid var(--grid); padding-top: 16px; }
+  h3 { color: var(--strong); margin: 20px 0 4px; font-size: 16.5px; }
+  .sub, .fine { color: var(--ink-soft); }
+  .fine { font-size: 13px; }
+  nav ol { columns: 2; padding-left: 20px; margin: 8px 0 16px; } nav a { color: var(--sea); }
+  a { color: var(--sea); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 8px 0; }
+  th, td { border-bottom: 1px solid var(--grid); padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { color: var(--strong); }
+  .box { background: var(--panel); border: 1px solid var(--grid); border-left: 4px solid var(--sea); border-radius: 8px; padding: 10px 14px; margin: 12px 0; }
+  .warn { border-left-color: var(--caution); }
+  code, kbd { font-family: ui-monospace, Menlo, monospace; font-size: 13px; background: var(--panel); border: 1px solid var(--grid); border-radius: 4px; padding: 0 4px; }
+  @media (max-width: 600px) { nav ol { columns: 1; } h1 { font-size: 23px; } }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>Salish Sea Flow Explorer — Guide</h1>
+  <p class="sub">Tides and currents of the Salish Sea from NOAA's SSCOFS model, and why high water and slack water don't line up. <a href="./">← Back to the explorer</a> · Last updated 2026-10-02</p>
+</header>
+<div class="box warn"><b>A learning tool, not for navigation.</b> Everything here is model output (a forecast), shown to explain how the tide works. For passage planning use NOAA and CHS tide and current predictions and official charts.</div>
+
+<nav><b>Contents</b><ol>
+  <li><a href="#start">Quick start</a></li><li><a href="#why">The question, and the answer</a></li>
+  <li><a href="#screen">What's on screen</a></li><li><a href="#maps">Reading each colour map</a></li>
+  <li><a href="#point">The point analyzer</a></li><li><a href="#passes">Basins &amp; passes</a></li>
+  <li><a href="#report">Area reports</a></li><li><a href="#data">Data and sources</a></li>
+  <li><a href="#methods">How it's computed</a></li><li><a href="#limits">Limits and caveats</a></li>
+  <li><a href="#credits">Credits and references</a></li><li><a href="#changes">Changelog</a></li>
+</ol></nav>
+
+<h2 id="start">1 · Quick start</h2>
+<ul>
+  <li><b>🎓 Lesson</b> (top right): a five-minute guided tour of the main idea. Each step sets up the map; stop anywhere and explore.</li>
+  <li><b>Time bar</b> (top of the panel): drag through the model run, <b>Now</b> jumps to the present, <b>▶</b> plays (space bar; ← → step an hour, shift for 6 h).</li>
+  <li><b>Click any water</b>: the point analyzer — that spot's tide and current over the whole run, with high/low water and slack marked and the gap between them labelled.</li>
+  <li><b>Colour</b>: the flow right now (speed, flood/ebb, level, spin) or a pattern over the run (the phase map and nine more).</li>
+  <li><b>📋 What happens here?</b>: the current area described in words, from this run.</li>
+  <li>Mouse: drag to rotate, right-drag (or shift-drag) to pan, wheel to zoom. <b>2D</b> (key <kbd>2</kbd>) gives a north-up map. Keys <kbd>1</kbd>, <kbd>3</kbd>–<kbd>9</kbd> jump to views.</li>
+</ul>
+
+<h2 id="why">2 · The question, and the answer</h2>
+<p>A tide table gives the times of high and low water; a current table gives the times of slack water and the strongest flood and ebb. In much of Puget Sound the two line up: slack comes close to high and low water. In the Strait of Juan de Fuca they don't: the current runs hardest near high and low water and turns around half-tide. At Deception Pass slack can come an hour or two from high water on either side. Why?</p>
+<h3>A tide is a wave, and a wave can travel or slosh</h3>
+<p>The tide enters from the Pacific as a very long wave (hundreds of kilometres from crest to crest).</p>
+<p><b>Where it travels</b> (a <i>progressive</i> wave) the water under the crest moves forward with it and the water under the trough moves back: the current is in step with the level — strongest at high and low water, slack in between, about three hours (a quarter of the 12.4-hour tide) from high or low water.</p>
+<p><b>Where it reflects</b> off the head of a basin, the incoming and reflected waves add up to a <i>standing</i> wave: the whole basin rises and falls together. Then the current is set by how fast the basin fills — water must flow in to raise the level, so the current is strongest when the level rises fastest (half-tide) and stops when the level stops rising (high water). Slack comes at high and low water.</p>
+<p><b>In the Salish Sea:</b> the twice-daily tide behaves largely as a progressive wave in Juan de Fuca and excites standing waves in the Strait of Georgia and Puget Sound (Mofjeld &amp; Larsen 1984; Foreman et al. 1995). The Strait of Georgia sees high water within about ten minutes end to end; Puget Sound within about 40 minutes (a ~20° phase change), with a ~40° jump across Deception Pass. This model's phase map shows the same: Juan de Fuca red (slack ~3 h from high/low water), Puget Sound and the Gulf Islands blue, and the change happening across the San Juans and Haro and Rosario straits. <b>In this model, Admiralty Inlet is already on the standing side</b> (slack within about half an hour of high and low water); the lesson and the maps say so rather than repeating the common shorthand that Admiralty Inlet is the transition.</p>
+<h3>Water in = basin rising</h3>
+<p>The cleanest proof is <a href="#passes">Basins &amp; passes</a>: the water flowing through Tacoma Narrows and the rate South Sound fills (its area × how fast its level rises) are computed independently from the model, and they are the same curve (correlation 0.998 in the first run). The flow stops when the level stops rising: slack at high water.</p>
+<h3>Passes between two tides</h3>
+<p>A short pass between two basins whose tides differ (Deception Pass) is driven by the difference in level across it: the water runs downhill, and turns when the levels cross — not at high water on either side.</p>
+<h3>The mixed tide</h3>
+<p>The Salish Sea's tide is <i>mixed</i>: a twice-daily part (M2) and a daily part (K1) of similar size. One of the day's two high waters is often much higher than the other, and sometimes one barely happens. Slack times then shift from tide to tide. The phase map uses the twice-daily tide alone (stable); the point analyzer shows the actual events (what you would meet).</p>
+
+<h2 id="screen">3 · What's on screen</h2>
+<table>
+  <tr><th>Control</th><th>What it does</th></tr>
+  <tr><td>Time bar</td><td>The time in the model run, local (Pacific) and UTC, and hours since the run began. Values are blended smoothly between the model's hourly outputs. Click a chart to jump the time there.</td></tr>
+  <tr><td>Data</td><td><b>Live forecast</b>: today's model run (updated each morning) — the surface current and the tide, out to 72 hours. <b>Lab</b> (three runs: <i>Spring tides</i> 11–14 Aug — the one the Lab opens on, the strongest flows — <i>Neap tides</i> 18–21 Sep, <i>In between</i> 1–4 Oct 2026; Seattle's range ~14, ~9 and ~12 ft): a whole model run kept for exploring — every depth, the depth-averaged current, the basins &amp; passes charts and the guided lesson. On Live, the pattern maps (phase map, high-water timing and the rest) come from the newest lab run: they're tidal timing, which changes little from week to week. The choice is remembered; links carry it.</td></tr>
+  <tr><td>View</td><td>The whole basin or one area, from above or in 3D. Home returns to the opening view.</td></tr>
+  <tr><td>Colour</td><td>What colours the water (section 4). The key and a short “how to read it” note sit underneath.</td></tr>
+  <tr><td>Current at</td><td><b>Surface</b>: the model's top layer — what a boat feels (wind and river water included). <b>Depth-averaged</b>: the whole water column — the tide's own flow. <b>Net drift</b>: what's left after the tides average out. <b>At depth</b> (10 m, 30 m, 100 m, near the seabed): needs the full 3D volume (Lab only, like Depth-averaged); in 3D each slice is drawn at its depth (times the seabed exaggeration).</td></tr>
+  <tr><td>Depth slider</td><td>“Current at” → <i>Any depth (slider)…</i> (or any “At depth” choice) shows a slider that sets any depth from 2 to 300 m; the slice is blank where the water is shallower.</td></tr>
+  <tr><td>Stacked slices</td><td>Lab, full volume loaded, 3D: slices at 20, 60 and 120 m down drawn at once under the (dimmed) surface colour, coloured like the water (Current speed or Flood or ebb), so you can see the current change with depth — the surface turning while deeper water still runs, or the reverse. A bigger seabed exaggeration spreads them apart.</td></tr>
+  <tr><td>Curtains at the passes</td><td>Lab, full volume loaded, 3D: vertical sections from the surface to the model's seabed across Tacoma Narrows, the Hood Canal entrance, Admiralty Inlet, Deception Pass and the Swinomish Channel, coloured by the current across them — blue into the basin (flood), orange out (ebb). The faint lines are the model's ten layers. <b>Go to a curtain</b> (the buttons under the checkbox) flies to one, side-on, and opens its card; the seabed exaggeration goes up to at least 15× so the wall reads, and the surface colour and particles fade back while curtains or slices are on. Ticking either downloads the volume first if it isn't loaded. <b>Click a curtain</b> for its card: the current at every depth over the whole run at the section's deepest point, and beside it the run's average by depth, where the tide cancels out and the slow two-layer exchange shows (at Admiralty Inlet: out on top, in underneath — Puget Sound's estuarine circulation over its entrance sill, Geyer &amp; Cannon 1982; much of the outflow is mixed down and carried back in, Ebbesmeyer &amp; Barnes 1980). <b>Release water across this line</b> follows parcels from the surface, mid-depth and the seabed for 24 hours and says where each group ends up on average.</td></tr>
+  <tr><td>Net exchange</td><td>Lab: at each curtain, the net transport with the tide averaged out — like the Salish Sea Model's <a href="https://ssmc-uw.org/salish-sea-model/salish-sea-circulation-maps/">circulation maps</a> (SSMC/UW): blue arrow for what flows in (usually the lower layers), orange for what flows out (the upper), in thousand m³/s. Three days can't remove every tide, so a section is shown only where in and out nearly balance (they must, apart from ~1k m³/s of rivers) — the neap run shows the most: Admiralty Inlet ~14k out over ~16k in. The curtain card gives the numbers and their uncertainty.</td></tr>
+  <tr><td>Follow the water</td><td>Lab: on the point card, <b>Surface / Mid-depth / Near the seabed</b> traces a parcel from that spot through the model's 3D current in real time (5-minute steps; 12 h, 24 h or to the end of the run), drawn at its depth, pale at the start and darker later, with marks every 6 h and a dot that rides it as the time bar plays. The card says how far it travelled and where it ended up.</td></tr>
+  <tr><td>Full 3D volume</td><td>Lab runs: all ten model layers for every hour (~170 MB). Offered when a lab run opens; choose <i>Ask</i>, <i>Always</i> or <i>Never</i>.</td></tr>
+  <tr><td>3D particles (all depths)</td><td>Lab, full volume, 3D, zoomed in to an area (under ~70 km across): particles through the whole water column, drifting with the model's current in three dimensions — including rising and sinking — drawn at their depth (× the seabed exaggeration). Blended smoothly between the 4 nearest grid points, the 2 nearest model layers and the 2 nearest hours. <b>Colour by</b> speed, depth (pale shallow → violet deep) or up/down (red rising, blue sinking; full colour at 1 cm/s). <b>From / to depth</b> keeps them to a band (e.g. below 40 m: the deep inflow). The vertical motion keeps the same scale as the horizontal against the true depth, so what you see is the model's own ratio of rising to drifting. They take the place of the surface particles while on.</td></tr>
+  <tr><td>Particles / Streamlines</td><td>Particles drift with the current (speed scaled to the view: zoomed in they slow down); streamlines are evenly spaced lines along the flow with arrowheads. Both follow “Current at”. <b>Density, speed, size, trail, line width, opacity</b>: sliders under them (remembered on this device; the 3D particles use them too).</td></tr>
+  <tr><td>Observed water level</td><td>At the 9 NOAA gauges that report in real time (La Push, Neah Bay, Port Angeles, Port Townsend, Bremerton, Tacoma, Seattle, Cherry Point, Friday Harbor), the point panel also fetches what the gauge actually measured over the run, every 6 minutes, straight from NOAA (black line), and says how far the water stands above or below the tide table — the push of wind, air pressure and rivers — whether the model forecast that, and how close the model has been (e.g. Seattle, 5 Oct: +0.3 ft observed, +0.3 ft forecast). There, the model is put on MLLW with its measured datum offset rather than matched to NOAA's mean, so such differences show. NOAA has no real-time current meters reporting in the Salish Sea, so currents can't be checked this way.</td></tr>
+  <tr><td>NOAA stations</td><td>NOAA's tide stations as small diamonds: click one (the panel opens on the nearest model water) for NOAA's tide prediction — heights above MLLW, as in tide tables — dashed beside the model's level, with both ranges and how far apart the high and low waters come. The model's curve is shifted to NOAA's mean (its own zero sits about 0.4 m below mean sea level). And NOAA's current-prediction stations as dots. <b>Orange</b>: this run's model is much weaker there than NOAA predicts (a pass too narrow for its mesh); <b>violet</b>: much stronger. Click one (or click on the water within 1 km of one) and the point panel draws NOAA's predicted current, dashed, beside the model's, with both sets of peaks.</td></tr>
+  <tr><td>Land, seabed &amp; water</td><td>Land relief and its height exaggeration; the seabed and its own (larger) exaggeration — the basin is ~300 km across and mostly under 300 m deep; the sea surface's colour and opacity. <i>Seabed: Best available</i> uses NOAA's 3 m survey DEM in US waters; <i>Model's own</i> shows the seabed the model flows over.</td></tr>
+</table>
+
+<h2 id="maps">4 · Reading each colour map</h2>
+<h3>Right now</h3>
+<table>
+  <tr><th>Map</th><th>How to read it</th></tr>
+  <tr><td>Current speed</td><td>Dark is slack; bright is fast. The passes light up first as the tide turns.</td></tr>
+  <tr><td>Flood or ebb</td><td>Blue floods, orange ebbs, white is slack — along each place's own flood direction (see section 9). Watch where the colour turns first.</td></tr>
+  <tr><td>Water level</td><td>The tide itself, relative to the model's datum. Play it: the high water travels up Juan de Fuca, then Puget Sound and the Strait of Georgia rise almost as one.</td></tr>
+  <tr><td>Spin (eddies)</td><td>Relative vorticity as a multiple of the Earth's own spin here (f ≈ 1.09 × 10⁻⁴ s⁻¹): blue anticlockwise, red clockwise. Beyond ±2: eddies and shear lines.</td></tr>
+</table>
+<h3>Patterns over the run</h3>
+<table>
+  <tr><th>Map</th><th>What it shows</th></tr>
+  <tr><td>Slack vs high water (phase map)</td><td>How far slack is from high or low water for the twice-daily tide: 0 h (blue) standing wave, ~3 h (red) progressive. Grey: currents too weak for slack to mean much (twice-daily + daily amplitude &lt; 0.4 kt) or drying ground.</td></tr>
+  <tr><td>When high water arrives</td><td>Hours after the ocean entrance (off Neah Bay) the twice-daily high water arrives — a co-tidal map. Bands = travelling; one colour = sloshing.</td></tr>
+  <tr><td>When the strongest flood arrives</td><td>Same clock, for the strongest flood. Equal to the high-water map where the wave travels; ~2½ h earlier where it sloshes.</td></tr>
+  <tr><td>Tidal current strength</td><td>Peak depth-averaged current of the run (98th-percentile hour).</td></tr>
+  <tr><td>Daily vs twice-daily</td><td>Share of the tidal current on the daily (K1) tide.</td></tr>
+  <tr><td>Back-and-forth vs rotating</td><td>Tidal ellipse ratio: 0 runs along one line (a real slack), 1 swings round the compass (no real slack).</td></tr>
+  <tr><td>Flood- or ebb-dominant</td><td>(peak flood − peak ebb) / (peak flood + peak ebb), using the 98th/2nd-percentile hours.</td></tr>
+  <tr><td>Net drift</td><td>The mean term of a tidal fit (mean + trend + M2 + K1 + M4) to each place's current over the run — what's left once the tide's back-and-forth is taken out: river outflow, wind drift, standing eddies.</td></tr>
+  <tr><td>Surface vs the water below</td><td>rms difference between the surface and depth-averaged currents: wind, river plumes and layering.</td></tr>
+  <tr><td>Eddy activity</td><td>Share of the run's hours the surface flow is rotation-dominated (Okubo–Weiss W &lt; 0) with |vorticity| &gt; f.</td></tr>
+</table>
+<h3>Compare the tides (lab runs)</h3>
+<p>Spring tides come near new and full moon, when the sun's and moon's pulls line up; neap tides at the quarter moons, when they pull at right angles (NOAA Ocean Service). With the spring and neap lab runs published, two maps compare them (on any lab run, and on Live):</p>
+<p>One thing works the other way round: the slow two-layer exchange at Admiralty Inlet is <i>strongest at neaps</i>. Over each run, the deep inflow at the section's deepest point averages 0.28 kt at the neap against 0.01 kt at the spring — weaker tides stir the layers less over the sill, so the dense water flows in underneath more freely. Geyer &amp; Cannon (1982) observed the same fortnightly swing there.</p>
+<table>
+  <tr><th>Map</th><th>How to read it</th></tr>
+  <tr><td>Current strength: spring ÷ neap</td><td>How many times stronger the tidal current (each run's peak, depth-averaged) is at the spring tide than at the neap. Typically ~1.7× (most places 1.3–2×), against tide ranges at Seattle of ~14 and ~9 ft. Grey: under 0.3 kt at neaps.</td></tr>
+  <tr><td>Slack timing: spring minus neap</td><td>How much slack water moves relative to high and low water between the two (the phase map's twice-daily measure; red later at springs, blue earlier). Typically 10–15 minutes; the most, 10–30 minutes later at springs, at the east end of Juan de Fuca and in Haro Strait. The size of the current changes with the tide's range; its timing hardly does.</td></tr>
+</table>
+
+<h2 id="point">5 · The point analyzer</h2>
+<p>Click any water. The card shows the whole run at that spot: the water level (top) with each high and low water timed, and the current along the local flood direction (bottom; flood blue above zero, ebb orange below), with slack (purple) and the strongest flood and ebb marked. Dashed lines join each slack to the nearest high or low water and label the gap (±h:mm). Hover for values; click to move the time there. The summary gives the median slack offsets in this run, the twice-daily timing from the phase map, and the tidal current and range of the twice-daily and daily tides.</p>
+<p class="fine">Times come from hourly model output: high and low water by a parabola through the three hourly values around each, slack by linear interpolation of the zero crossing, peak currents by parabola. That gives minutes, not hours, but treat them as ±10 min.</p>
+
+<h2 id="passes">6 · Basins &amp; passes</h2>
+<p>For South Sound (through Tacoma Narrows), Hood Canal (through its mouth) and all of Puget Sound (through Admiralty Inlet, Deception Pass and the Swinomish Channel), the pipeline adds up, every hour, the water flowing through lines drawn across the passes (depth-averaged velocity across the line × water depth × length), and separately the basin's wet area × the rate its area-mean level rises. The basin is everything on the model's mesh reachable from inside without crossing the pass lines. If the model conserves water (it does; rivers add a little), the two match — they do, r ≥ 0.998. The card states the peak flows, the water each flood brings in (the tidal prism) and its share of the basin's volume, and, for Puget Sound, how the exchange divides between the passes.</p>
+<p>Deception Pass has its own card: the level on the Rosario Strait side and the Skagit Bay side, and the current through the pass.</p>
+<p class="fine">The model's mesh joins Oakland Bay (Shelton) to Hood Canal through a shallow marsh channel (under 1 m deep). That link is closed for the basin calculation; its peak flow (~100 m³/s against ~100,000 m³/s through the Narrows) is reported by the pipeline.</p>
+
+<h2 id="report">7 · Area reports</h2>
+<p>“📋 What happens here?” writes up the area of the current view (or the whole inland sea) from this run's patterns: the tide's range and how high water arrives; the strength and direction of the current and its fastest spot; slack timing; daily vs twice-daily, rotary, flood/ebb dominance; eddies; net drift and layering. Each statement has a “map ›” link to its colour map and, where there's a hot spot, flies there. Places are named from a short list of landmarks with approximate positions (to ~1 km).</p>
+
+<h2 id="data">8 · Data and sources</h2>
+<table>
+  <tr><th>What</th><th>Source</th></tr>
+  <tr><td>Tides and currents</td><td><b>NOAA SSCOFS</b> (Salish Sea and Columbia River Operational Forecast System; FVCOM 4.4.7). Unstructured mesh of 239,734 nodes and 433,410 triangles (~100 m along shorelines, ~500 m in the deep basins); 10 terrain-following layers; runs at 03, 09, 15 and 21 UTC to 72 hours, forced by tides at the ocean boundary, 38 rivers and the weather. This site uses the latest complete run (Live) and whole runs kept in the Lab, cut to 46.75–50.25° N, 125.6–121.65° W (170,174 nodes, 310,628 triangles), read from NOAA CO-OPS' OPeNDAP server (which sends just the parts asked for) or NOAA's public S3 bucket <code>noaa-nos-ofs-pds</code>.</td></tr>
+  <tr><td>Seabed (US waters)</td><td>NOAA NCEI Continuously Updated DEM (CUDEM), 1/9 arc-second (~3 m) topobathy tiles for Puget Sound, Juan de Fuca and the San Juans/Bellingham, NAVD88 (<code>noaa-nos-coastal-lidar-pds</code>), resampled to 250 m.</td></tr>
+  <tr><td>Seabed (Canadian waters)</td><td>Canadian Hydrographic Service NONNA-100 non-navigational bathymetry (~100 m; Chart Datum), from CHS's public web service, resampled to 250 m and blended with the other sources at the seams. Not for navigation. <details class="chs-notice"><summary>Canadian seabed: CHS NONNA · not for navigation · licence notice</summary><p>This product was made by fp-sea and contains intellectual property of the Canadian Hydrographic Service (CHS) of the Department of Fisheries and Oceans. This product does not meet the requirements of the Navigation Safety Regulations, 2020 under the Canada Shipping Act, 2001. Charts and publications issued by or on the authority of CHS must be used to meet the requirements of those regulations. The copyright in the data are and remain the property of His Majesty the King in Right of Canada and shall not be sold, licensed, leased, assigned or given to a third party. The incorporation of CHS data in this product does not constitute an endorsement or an approval of this product by the Canadian Hydrographic Service, the Department of Fisheries and Oceans or His Majesty the King in Right of Canada.</p></details></td></tr>
+  <tr><td>Seabed (elsewhere)</td><td>The SSCOFS model's own depth — the open coast and shelf, where neither survey reaches.</td></tr>
+  <tr><td>Land</td><td>AWS Terrain Tiles (Terrarium; SRTM, GMTED and others), ~100 m.</td></tr>
+  <tr><td>How it's refreshed</td><td>A job on the owner's computer takes NOAA's newest complete run each morning (the 09 UTC run, ready by about 5:30 am Pacific) and publishes its surface current and tide to <a href="https://fp-sea.github.io/salish-currents/">fp-sea.github.io/salish-currents</a>, which also shows whether the last attempts worked. The Wind Volume Explorer uses the same data. Lab runs are built once and kept there too; the daily job doesn't rebuild them (a whole run with every layer is ~4 GB to fetch; the surface alone is ~400 MB). A <b>⚠</b> chip at the top says when the live data is old (over 40 hours) or the job has been failing; “About the data” gives details.</td></tr>
+  <tr><td>Coastline</td><td>The edge of the SSCOFS mesh, so land and water split exactly where the model has water.</td></tr>
+</table>
+
+<h2 id="methods">9 · How it's computed</h2>
+<h3>Packing the run</h3>
+<p>Every hour: water level at each node (centimetres; drying nodes flagged), and the surface current at each triangle (east and north, 0.1 kt steps; the few values beyond 12.7 kt — Seymour Narrows runs near 16 kt at springs — are kept exactly in an overflow list) — about 15 MB a run. Lab runs add the depth-averaged current (24 MB a run) and the full volume: all ten layers of east, north and vertical velocity, ~170 MB on request.</p>
+<h3>Smooth on screen</h3>
+<p>Triangle values are carried to the corners as area-weighted averages, so colours are smooth across the mesh; time is blended linearly between hours on the graphics card; depth slices interpolate between layer centres using each triangle's depth plus the water level.</p>
+<h3>Particles and streamlines</h3>
+<p>The current is sampled onto a regular grid for them: 250 m over the whole region, and, once you zoom in under about 30 km across and stop, a finer grid of just the view at about 1/250 of its width (down to 40 m) — finer than the model's own triangles (~75 m in the tightest passes), so the particles follow every eddy the model resolves. The model itself resolves eddies down to roughly half a kilometre to a kilometre (a few triangles across) and saves hourly; anything smaller or faster isn't in the data.</p>
+<h3>Curtains</h3>
+<p>Each pass line is sampled every 60 m where it crosses the model's water; each column takes the ten layer values of its triangle at the layer centres (σ × the local depth), and the current across the line. Which side is “into the basin” is taken from the basin's flow: the depth-averaged current across the line must rise and fall with the pass's published flux. The card's average by depth is the plain mean over the run's 73 hours.</p>
+<h3>Flood direction</h3>
+<p>Each triangle's flood direction is its principal axis of depth-averaged flow over the run, pointed the way the water goes while the local tide is rising or high: the twice-daily current phase must lie within 90° of (water-level phase − 45°), between “strongest at mid-rise” (standing) and “strongest at high water” (progressive).</p>
+<h3>The phase map</h3>
+<p>Least-squares fit of mean + trend + M2 + K1 + M4 to each triangle's water level and along-axis depth-averaged current over the 73 hours. Slack after high water = (current phase + 90° − level phase) mod 180°, in hours. Seventy-two hours separates M2, K1 and M4 but not their neighbours (S2 and N2 fold into M2, O1 into K1), so the map is a snapshot of this run's twice-daily behaviour; it's stable from run to run but shifts a little between spring and neap tides.</p>
+<h3>Patterns</h3>
+<p>Arrival times are the same fit's M2 phases, measured from M2 high water at the triangle nearest the ocean entrance off Neah Bay. Vorticity and the Okubo–Weiss parameter come from the gradients of the surface current across each triangle.</p>
+
+<h2 id="limits">10 · Limits and caveats</h2>
+<ul>
+  <li><b>It's a model forecast.</b> SSCOFS is NOAA's operational model and is checked against tide gauges and current meters, but it is not observation. Wind, rivers and weather in the forecast affect levels and surface currents.</li>
+  <li><b>Water level datum</b> is the model's own (its files say “above geoid”), not chart datum (MLLW). Checked against NOAA's predictions at Seattle, Port Townsend, Friday Harbor and Tacoma over three runs: the model's level sits a steady 0.34–0.45 m above NOAA's mean sea level, its range is within about 5 % of NOAA's and its high and low waters come within the hour (about 5–10 minutes at Seattle). At all 141 NOAA tide stations the range is within about ±7 % at springs (±15 % at neaps) and high and low water within about 20 minutes at springs — the tide itself is well modelled everywhere; it's the currents in the narrowest passes that aren't. Tide tables use MLLW, 1.4–2.1 m below mean sea level here; near a NOAA tide station the point panel shows NOAA's own heights. Good for range and timing, not for depth under the keel.</li>
+  <li><b>Hourly output.</b> Event times are interpolated; expect about ±10 minutes.</li>
+  <li><b>Seventy-two hours</b> can't separate all the tidal constituents: the phase map is a snapshot of one run, and the net exchange is shown only where the run is long enough to trust. Spring–neap changes are covered by the three lab runs (spring, between, neap).</li>
+  <li><b>Deception Pass</b>: the model's slack times at the narrows agree with NOAA's predictions to about 10 minutes (median, spring and in-between runs; noisier at neaps), but its speeds are about half NOAA's — see “Where the model is weak” below. Slack there comes well before high or low water at the pass itself, because the current is driven by the level difference across the pass.</li>
+  <li><b>“Flood” direction in short passes.</b> Each place's flood direction comes from its own tide timing (section 9). At 5 of 154 NOAA current stations that rule points the other way from NOAA's; two are in Deception Pass, where the “Flood or ebb” colours therefore take NOAA's sense (flood east, into Skagit Bay) within 4 km of its stations. Near any NOAA station the point panel measures the current along NOAA's own flood direction.</li>
+  <li><b>The “surface” current</b> is the model's top layer: the top ~3 % of the depth (about 1 m in 30 m of water, 6 m in 200 m).</li>
+  <li><b>Seabed</b>: survey depths (NOAA CUDEM in US waters, CHS NONNA in Canadian waters) resampled to 250 m, blended over 3 km where sources meet; the open coast and shelf show the model's own depth. Choose “Model's own” under the seabed settings to see what the model's water actually flows over — the difference shows where its mesh smooths sills and channels.</li>
+  <li><b>Where the model is weak — narrow passes.</b> Checked against NOAA's current predictions at 108 stations (1–4 Oct 2026): at most the model's peak currents are within about 15 % of NOAA's (median 1.06×), but in constrictions narrower than its ~100 m triangles can resolve it runs far too slow — <b>Deception Pass narrows: ebbs of 2.5–2.8 kt where NOAA predicts 6.0–7.9 kt, floods ~60 %</b>; also Saddle Bag Island Passage, Totten Inlet entrance, Pickering Passage, Drayton Harbor entrance (⅓–½), Guemes Channel and Thatcher Pass (~⅔). It runs too fast in a few open spots (south of Discovery Island, Harbor Island, ~2×). Each run is rated again station by station; the map marks the stations where that run is far off (orange: too weak, violet: too strong), and clicking one shows NOAA's curve beside the model's. <b>In those passes, use NOAA's predictions for speeds.</b></li>
+  <li><b>NOAA's station predictions</b> are tidal only (no wind or river flow) and at a set depth; stored with the site a year at a time and drawn between their slack and peak times with NOAA's usual sine curve.</li>
+</ul>
+
+<h2 id="credits">11 · Credits and references</h2>
+<ul>
+  <li>NOAA National Ocean Service, CO-OPS: SSCOFS model output (public domain), via the NOAA Open Data Dissemination program on AWS.</li>
+  <li>NOAA NCEI: CUDEM 1/9 arc-second topobathymetric DEMs. AWS / Mapzen Terrain Tiles.</li>
+  <li>Mofjeld, H. O. &amp; Larsen, L. H. (June 1984). <i>Tides and tidal currents of the inland waters of western Washington.</i> NOAA Tech. Memo. ERL PMEL-56. <a href="https://repository.library.noaa.gov/view/noaa/9471">NOAA repository</a></li>
+  <li>Lavelle, J. W., Mofjeld, H. O., Lempriere-Doggett, E., Cannon, G. A., Pashinski, D. J., Cokelet, E. D., Lytle, L. &amp; Gill, S. (1988). <i>A multiply-connected channel model of tides and tidal currents in Puget Sound, Washington and a comparison with updated observations.</i> NOAA Tech. Memo. ERL PMEL-84. <a href="https://repository.library.noaa.gov/view/noaa/11260">NOAA repository</a></li>
+  <li>Foreman, M. G. G., Walters, R. A., Henry, R. F., Keller, C. P. &amp; Dolling, A. G. (1995). A tidal model for eastern Juan de Fuca Strait and the southern Strait of Georgia. <i>J. Geophys. Res.</i> 100(C1), 721–740. doi:10.1029/94JC02721</li>
+  <li>Geyer, W. R. &amp; Cannon, G. A. (1982). Sill processes related to deep water renewal in a fjord. <i>J. Geophys. Res.</i> 87(C10), 7985–7996. doi:10.1029/JC087iC10p07985 — the two-layer flow over the Admiralty Inlet sill, strongest at neap tides, weakest at springs.</li>
+  <li>Ebbesmeyer, C. C. &amp; Barnes, C. A. (1980). Control of a fjord basin's dynamics by tidal mixing in embracing sill zones. <i>Estuarine and Coastal Marine Science</i> 11(3), 311–330. doi:10.1016/S0302-3524(80)80086-7 — via Cokelet, Stewart &amp; Ebbesmeyer (1990), <i>The annual mean transport in Puget Sound</i>, NOAA Tech. Memo. ERL PMEL-92 (<a href="https://repository.library.noaa.gov/view/noaa/9524">NOAA repository</a>): about ⅔ of the seaward-flowing water is mixed down and carried back in near the sills.</li>
+  <li>NOAA Ocean Service, <a href="https://oceanservice.noaa.gov/facts/springtide.html">What is a spring tide?</a> — spring tides near new and full moon, neap tides at the quarter moons, when the sun and moon pull at right angles.</li>
+  <li>Bauer, W. (1928) on Puget Sound's nearly standing tides, as cited in University of Washington Oceanography 420 course notes.</li>
+</ul>
+<p class="fine">Code ported in part from the fp-sea Wind Volume Explorer (particles and streamlines, 3D stage, terrain).</p>
+
+<h2 id="changes">12 · Changelog</h2>
+<ul>
+  <li><b>2026-10-05</b> — <b>Canadian seabed</b>: CHS NONNA-100 survey depths in Canadian waters (the Strait of Georgia, the Canadian side of Haro Strait and Juan de Fuca), with the CHS licence notice.</li>
+  <li><b>2026-10-05</b> — <b>Follow the water</b>: trace a parcel from any spot and depth through the 3D current, or release a line of them across a curtain. <b>NOAA tide stations</b> beside the model's water level. <b>Haro and Rosario Strait curtains.</b> A <b>satellite photo</b> land style. References checked and completed.</li>
+  <li><b>2026-10-05</b> — <b>3D particles</b> through every depth (Lab), coloured by speed, depth or up/down, with a depth band; <b>particle and streamline style</b> sliders (size, trail, width, opacity); the lesson can run on any of the three lab runs and has a new step comparing springs and neaps.</li>
+  <li><b>2026-10-05</b> — <b>Spring and neap lab runs</b> (11–14 Aug and 18–21 Sep 2026) beside the 1–4 Oct one: the same place at the biggest and smallest tides of the last two months. The Lab opens on the spring run. Two new maps compare them (Colour → Compare the tides): the currents are ~1.7× stronger at springs (Tacoma Narrows 2.2 → 4.2 kt) while slack moves only 10–15 minutes.</li>
+  <li><b>2026-10-02</b> — <b>NOAA's current predictions beside the model:</b> station markers (orange where this run is far too weak, violet far too strong), NOAA's curve in the point panel, a note on the pass cards; the limits section lists where the model is weak (Deception Pass narrows: about a third of the predicted ebb).</li>
+  <li><b>2026-10-02</b> — <b>The volume in 3D</b> (Lab): a depth slider, stacked slices at 20/60/120 m, and curtains — vertical sections at the passes, with a card showing the current at every depth over the run. Particles and streamlines now use a much finer grid when zoomed in (down to 40 m), so they follow the model's eddies. Depth slices no longer show coloured edges where the water gets too shallow.</li>
+  <li><b>2026-10-02</b> — <b>Live and Lab.</b> The daily data is now the surface current and tide only, refreshed once each morning; depths, the depth-averaged current, basins &amp; passes and the lesson use lab runs — whole runs kept for exploring (the first: 1–4 Oct 2026). Pick under “Data”.</li>
+  <li><b>2026-10-02</b> — The model data now comes from the shared data repo (refreshed twice a day; the full volume about once a day), with warnings when it's old or the refresh has been failing.</li>
+  <li><b>2026-10-01</b> — First version: SSCOFS latest run (tides, surface/depth-averaged currents, full 3D volume on request), terrain and seabed, particles and streamlines, point analyzer, phase map and nine pattern maps, live spin, basins &amp; passes, area reports, the guided lesson.</li>
+</ul>
+</main>
+</body>
+</html>

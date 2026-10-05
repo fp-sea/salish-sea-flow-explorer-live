@@ -1,0 +1,114 @@
+{
+  "id": "salish-sea",
+  "label": "Salish Sea",
+  "tz": "America/Los_Angeles",
+  "bbox": {
+    "latMin": 46.95,
+    "latMax": 50.25,
+    "lonMin": -125.6,
+    "lonMax": -122.0
+  },
+  "bboxNote": "Owner-approved 2026-10-01 (SCOPE §8 #3): JdF entrance to the north end of the Strait of Georgia, Olympia to the Fraser.",
+  "dataBox": {
+    "latMin": 46.75,
+    "latMax": 50.25,
+    "lonMin": -125.6,
+    "lonMax": -121.65
+  },
+  "dataBoxNote": "The published SSCOFS data covers this (2026-10-02): the scene box joined with wind-volume-explorer's Salish crop (46.8–49.3 N, 125.4–121.7 W, +0.05° margin), so one run serves both sites.",
+  "projectionRefLat": 48.6,
+  "homeView": "region-3d",
+  "view3dAzDeg": 200,
+  "subareas": [
+    {
+      "id": "jdf",
+      "label": "Strait of Juan de Fuca",
+      "box": {
+        "latMin": 47.95,
+        "latMax": 48.7,
+        "lonMin": -124.8,
+        "lonMax": -122.7
+      }
+    },
+    {
+      "id": "sanjuans",
+      "label": "San Juans · Haro & Rosario",
+      "box": {
+        "latMin": 48.3,
+        "latMax": 48.85,
+        "lonMin": -123.35,
+        "lonMax": -122.55
+      }
+    },
+    {
+      "id": "georgia",
+      "label": "Strait of Georgia",
+      "box": {
+        "latMin": 48.75,
+        "latMax": 50.15,
+        "lonMin": -125.2,
+        "lonMax": -122.85
+      }
+    },
+    {
+      "id": "admiralty",
+      "label": "Admiralty Inlet",
+      "box": {
+        "latMin": 47.88,
+        "latMax": 48.2,
+        "lonMin": -122.85,
+        "lonMax": -122.45
+      }
+    },
+    {
+      "id": "mainbasin",
+      "label": "Puget Sound Main Basin",
+      "box": {
+        "latMin": 47.3,
+        "latMax": 47.95,
+        "lonMin": -122.65,
+        "lonMax": -122.25
+      }
+    },
+    {
+      "id": "narrows",
+      "label": "Tacoma Narrows",
+      "box": {
+        "latMin": 47.2,
+        "latMax": 47.36,
+        "lonMin": -122.66,
+        "lonMax": -122.46
+      }
+    },
+    {
+      "id": "southsound",
+      "label": "South Sound",
+      "box": {
+        "latMin": 47.0,
+        "latMax": 47.4,
+        "lonMin": -123.15,
+        "lonMax": -122.5
+      }
+    },
+    {
+      "id": "hoodcanal",
+      "label": "Hood Canal",
+      "box": {
+        "latMin": 47.3,
+        "latMax": 47.95,
+        "lonMin": -123.2,
+        "lonMax": -122.6
+      }
+    },
+    {
+      "id": "whidbey",
+      "label": "Whidbey Basin · Deception Pass",
+      "box": {
+        "latMin": 47.9,
+        "latMax": 48.45,
+        "lonMin": -122.75,
+        "lonMax": -122.2
+      }
+    }
+  ]
+}
