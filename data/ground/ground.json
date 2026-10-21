@@ -1,0 +1,50 @@
+{
+ "terrain": {
+  "file": "terrain.i16.gz",
+  "mask": "land.u8.gz",
+  "coast": "coast.i16.gz",
+  "coastUnits": "10 m",
+  "coastBandKm": 2.0,
+  "units": "m",
+  "x0": -132.511,
+  "y0": -182.4471,
+  "dxy": 0.25,
+  "nx": 1061,
+  "ny": 1461,
+  "max_m": 2786,
+  "land_frac": 0.7219,
+  "mesh": "eeec1e1b",
+  "credit": "Land: AWS Terrain Tiles (Terrarium; SRTM, GMTED and others). Coastline: the NOAA SSCOFS model mesh."
+ },
+ "seabed": {
+  "file": "seabed.i16.gz",
+  "model": "modelbed.i16.gz",
+  "src": "bedsrc.u8.gz",
+  "units": "dm",
+  "x0": -132.511,
+  "y0": -182.4471,
+  "dxy": 0.25,
+  "nx": 1061,
+  "ny": 1461,
+  "sources": {
+   "cudem": 0.246,
+   "blend": 0.191,
+   "model": 0.467,
+   "nonna": 0.096
+  },
+  "deepest_m": 1407,
+  "blendKm": 3.0,
+  "credit": "Seabed: NOAA NCEI Continuously Updated DEM (CUDEM) 1/9 arc-second topobathy (US waters); Canadian Hydrographic Service NONNA-100 (Canadian waters; not for navigation); NOAA SSCOFS model depth elsewhere.",
+  "chsNotice": true
+ },
+ "photo": {
+  "file": "photo.jpg",
+  "extent": [
+   -132.51102632609184,
+   -182.44709999999984,
+   132.51102632609184,
+   182.44709999999984
+  ],
+  "credit": "Sentinel-2 cloudless 2024 by EOX IT Services GmbH (contains modified Copernicus Sentinel data 2024), CC BY-NC-SA 4.0"
+ }
+}

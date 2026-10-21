@@ -1,0 +1,16 @@
+{
+  "about": "Named spots used only to say where a hot spot is ('near Bush Point'). Positions are approximate (from memory, to ~1 km), not surveyed; check before using them for anything else. Copied to web/data/places.json by pipeline.ground.",
+  "places": [
+    ["Cape Flattery", 48.383, -124.716], ["Neah Bay", 48.37, -124.62], ["Pillar Point", 48.21, -124.10], ["Ediz Hook (Port Angeles)", 48.14, -123.40],
+    ["Race Rocks", 48.30, -123.53], ["Victoria", 48.41, -123.38], ["Dungeness Spit", 48.18, -123.11], ["Smith Island", 48.32, -122.84],
+    ["Point Wilson", 48.145, -122.755], ["Admiralty Head", 48.16, -122.68], ["Port Townsend", 48.115, -122.76], ["Bush Point", 48.03, -122.61],
+    ["Point No Point", 47.912, -122.527], ["Foulweather Bluff", 47.93, -122.62], ["Hood Canal Bridge", 47.86, -122.63], ["Dabob Bay", 47.75, -122.85],
+    ["Possession Point", 47.90, -122.38], ["Edmonds", 47.81, -122.38], ["Elliott Bay (Seattle)", 47.60, -122.36], ["Alki Point", 47.576, -122.42],
+    ["Vashon Island", 47.42, -122.46], ["Point Defiance", 47.31, -122.52], ["Tacoma Narrows", 47.27, -122.55], ["Nisqually Reach", 47.13, -122.75],
+    ["Olympia", 47.05, -122.90], ["Saratoga Passage", 48.10, -122.47], ["Skagit Bay", 48.30, -122.50], ["Deception Pass", 48.406, -122.645],
+    ["Anacortes", 48.51, -122.61], ["Rosario Strait", 48.56, -122.72], ["Cattle Point", 48.45, -122.96], ["San Juan Channel", 48.53, -122.98],
+    ["Haro Strait (Lime Kiln)", 48.52, -123.15], ["Boundary Pass", 48.77, -123.05], ["Bellingham Bay", 48.73, -122.53], ["Point Roberts", 48.98, -123.08],
+    ["Active Pass", 48.86, -123.31], ["Porlier Pass", 49.01, -123.59], ["Dodd Narrows", 49.14, -123.82], ["Fraser River mouth (Sand Heads)", 49.10, -123.30],
+    ["Nanaimo", 49.17, -123.93], ["Texada Island", 49.65, -124.40], ["Campbell River", 50.02, -125.24], ["Seymour Narrows", 50.13, -125.35]
+  ]
+}
